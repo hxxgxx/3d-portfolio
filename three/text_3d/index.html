@@ -4,6 +4,7 @@
     <meta charset=UTF-8 />
     <link rel="stylesheet" type="text/css" href="styles.css" />
   </head>
+  <title>3d text</title>
   <body>
     <script type="module">
       import * as THREE from './build/three.module.js';
@@ -13,6 +14,7 @@
       // scene, camera, renderer 생성
       let scene, camera, renderer;
       
+      // setting skybox
       function init() {
         scene = new THREE.Scene();
         scene.background = new THREE.CubeTextureLoader()
