@@ -9,7 +9,7 @@
 skycube, 3D object, orbitcontrols, 3d game 등 3D 라이브러리를 사용한 3D 포트폴리오
 
 
-https://hhi-812.github.io/3D-portfolio/
+demo : https://hhi-812.github.io/3D-portfolio/
 
 
 
