@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100&display=swap');
+
+body{
+    margin: 0;
+    font-family: 'Noto Sans JP', sans-serif;
+}  
+
+button {
+    border: 1px solid steelblue;
+}
+
+#playBtn:hover {
+    border: 1px solid steelblue;
+    background-color: steelblue;
+    color: white;
+}
+
+
+#playBtn{
+    position: absolute;
+    width: 180px;
+    height: 100px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 40px;
+    bottom: 270px;
+    border-radius: 20px;
+    background: none;
+    color: steelblue;
+    left: 50%;
+    transform: translateX(-50%);
+}
+#instructions{
+    position:absolute;
+    bottom: 70px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 30px;
+    color: steelblue;
+    width: 600px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 20px;
+    padding: 30px;
+    /* background-color: rgba(255, 255, 255, 0.5); */
+    text-align: center;
+    line-height:1.7;
+}
+#gameover{
+    display: none;
+    position:absolute;
+    bottom: 350px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 50px;
+    color: steelblue;
+    width: 300px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+}
+#info{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 50px;
+}
+#info img{
+    padding-top: 20px;
+}
+#life{
+  position: absolute;
+  left: 20px;
+}
+#score-panel{
+  position: absolute;
+  top: 0;
+  right: 20px;
+  float: right;
+}
+#lives{
+    display: inline;
+    position: relative;
+    top: -15px;
+    color: steelblue;
+}
+#score{
+    display: inline;
+    position: relative;
+    top: -15px;
+    color: steelblue;
+}

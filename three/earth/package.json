@@ -1,0 +1,24 @@
+{
+  "name": "three.js.tutorial2",
+  "version": "1.0.0",
+  "description": "three.js.tutorial2",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Hong",
+  "license": "ISC",
+  "homepage": "https://hhi-812.github.io/earth3D",
+  "dependencies": {
+    "express": "^4.17.1",
+    "gh": "^2.8.9",
+    "http-proxy-middleware": "^2.0.1",
+    "three": "^0.127.0"
+  },
+  "devDependencies": {
+    "gh-pages": "^3.2.3",
+    "webpack": "^5.45.1",
+    "webpack-cli": "^4.7.2"
+  }
+}

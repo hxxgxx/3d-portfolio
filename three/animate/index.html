@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - skinning and morphing</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="/css/main.css">
+		<style>
+			body {
+				color: #222;
+			}
+
+			a {
+				color: #2fa1d6;
+			}
+
+			p {
+				max-width: 600px;
+				margin-left: auto;
+				margin-right: auto;
+				padding: 0 2em;
+			}
+		</style>
+	</head>
+
+	<body>
+		<script type="module">
+
+			import * as THREE from '../../libs/three125/three.module.js';
+
+			import Stats from '../../libs/jsm/libs/stats.module.js';
+			import { GUI } from '../../libs/jsm/libs/dat.gui.module.js';
+
+			import { GLTFLoader } from '../../libs/three125/GLTFLoader.js';
+            import { OrbitControls } from '../../libs/three125/OrbitControls.js';
+
+			let container, stats, clock, gui, mixer, actions, activeAction, previousAction;
+			let camera, scene, renderer, model, face;
+
+			const api = { state: 'Dance' };
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+                // 카메라 생성
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.25, 100 );
+				camera.position.set( - 5, 4, 10 );
+				camera.lookAt( new THREE.Vector3( 0, 2, 0 ) );
+
+                // 씬 생성
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0xe0e0e0 );
+				scene.fog = new THREE.Fog( 0xe0e0e0, 20, 100 );
+
+                //          시간 추적하기 위한 객체
+				clock = new THREE.Clock();
+
+				// lights                 : HemisphereLight => scene 바로 위에서 광원 방출, 그림자가 생기지 않는 Ligth 유형
+				const hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
+				hemiLight.position.set( 0, 20, 0 );
+				scene.add( hemiLight );
+
+                //                       : DirectionalLight => 특정 방향으로 빛 방출, 그림자가 생기는 Light 유형 (ex, 태양)
+				const dirLight = new THREE.DirectionalLight( 0xffffff );
+				dirLight.position.set( 0, 20, 10 );
+				scene.add( dirLight );
+
+				// ground                              : 평면(바닥)
+				const mesh = new THREE.Mesh( new THREE.PlaneGeometry( 2000, 2000 ), new THREE.MeshPhongMaterial( { color: 0x999999, depthWrite: false } ) );
+				mesh.rotation.x = - Math.PI / 2;
+				scene.add( mesh );
+
+                // create grid helper
+				const grid = new THREE.GridHelper( 200, 40, 0x000000, 0x000000 );
+				grid.material.opacity = 0.2;
+				grid.material.transparent = true;
+				scene.add( grid );
+
+				// robot model load
+				const loader = new GLTFLoader();
+				loader.load( '../../libs/models/gltf/RobotExpressive/RobotExpressive.glb', function ( gltf ) {
+
+					model = gltf.scene;
+					scene.add( model );
+
+					createGUI( model, gltf.animations );
+
+				}, undefined, function ( e ) {
+
+					console.error( e );
+
+				} );
+
+                // renderer 
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.outputEncoding = THREE.sRGBEncoding;
+				container.appendChild( renderer.domElement );
+                
+				window.addEventListener( 'resize', onWindowResize );
+                
+				// stats
+				stats = new Stats();
+				container.appendChild( stats.dom );
+
+                const controls = new OrbitControls( camera, renderer.domElement );
+                // oribitcontrol camera 위치 (x, y, z)
+				controls.target.set( 0, 2, 0 );
+				controls.update();
+
+			}
+
+            // Graphic User Interface 생성
+			function createGUI( model, animations ) {
+
+                // animations 속성
+				const states = [ 'Idle', 'Walking', 'Running', 'Dance', 'Death', 'Sitting', 'Standing' ];
+				const emotes = [ 'Jump', 'Yes', 'No', 'Wave', 'Punch', 'ThumbsUp' ];
+
+				gui = new GUI();
+
+                //                AnimationMixer : 장면의 특정 개체에 대한 애니메이션 플레이어, 
+                //                                 장면의 여러 개체가 독립적으로 애니메이션 되는 경우에 각 객체에 대해 하나의 AnimationMixer을 사용한다.
+				mixer = new THREE.AnimationMixer( model );
+
+				actions = {};
+
+				for ( let i = 0; i < animations.length; i ++ ) {
+
+					const clip = animations[ i ];
+					const action = mixer.clipAction( clip );
+					actions[ clip.name ] = action;
+
+					if ( emotes.indexOf( clip.name ) >= 0 || states.indexOf( clip.name ) >= 4 ) {
+
+						action.clampWhenFinished = true;
+						action.loop = THREE.LoopOnce;
+
+					}
+
+				}
+
+				// states
+				const statesFolder = gui.addFolder( 'States' );
+				const clipCtrl = statesFolder.add( api, 'state' ).options( states );
+
+				clipCtrl.onChange( function () {
+
+					fadeToAction( api.state, 0.5 );
+
+				} );
+
+				statesFolder.open();
+
+				// emotes
+				const emoteFolder = gui.addFolder( 'Emotes' );
+
+				function createEmoteCallback( name ) {
+
+					api[ name ] = function () {
+
+						fadeToAction( name, 0.2 );
+
+						mixer.addEventListener( 'finished', restoreState );
+
+					};
+
+					emoteFolder.add( api, name );
+
+				}
+
+				function restoreState() {
+
+					mixer.removeEventListener( 'finished', restoreState );
+                    
+					fadeToAction( api.state, 0.2 );
+
+				}
+
+				for ( let i = 0; i < emotes.length; i ++ ) {
+
+					createEmoteCallback( emotes[ i ] );
+
+				}
+
+				emoteFolder.open();
+
+				// expressions
+				face = model.getObjectByName( 'Head_4' );
+
+				const expressions = Object.keys( face.morphTargetDictionary );
+				const expressionFolder = gui.addFolder( 'Expressions' );
+
+				for ( let i = 0; i < expressions.length; i ++ ) {
+
+					expressionFolder.add( face.morphTargetInfluences, i, 0, 1, 0.01 ).name( expressions[ i ] );
+
+				}
+
+				activeAction = actions[ 'Dance' ];
+				activeAction.play();
+
+				expressionFolder.open();
+
+			}
+
+			function fadeToAction( name, duration ) {
+
+				previousAction = activeAction;
+				activeAction = actions[ name ];
+
+				if ( previousAction !== activeAction ) {
+
+					previousAction.fadeOut( duration );
+
+				}
+
+				activeAction
+					.reset()
+					.setEffectiveTimeScale( 1 )
+					.setEffectiveWeight( 1 )
+					.fadeIn( duration )
+					.play();
+
+			}
+
+            // window resize set
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			// animate
+			function animate() {
+                //               oldTime이 설정된 시간 이후 경과된 초를 가져오고, oldTime을 현재 시간으로 설정
+                //               autoStart가 true이고 시계가 실행되고 있지 않으면 시계도 시작
+				const dt = clock.getDelta();
+
+				if ( mixer ) mixer.update( dt );
+
+				requestAnimationFrame( animate );
+				renderer.render( scene, camera );
+
+				stats.update();
+
+			}
+
+		</script>
+
+	</body>
+</html>
