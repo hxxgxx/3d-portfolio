@@ -3,7 +3,7 @@
 skycube, 3D object, orbitcontrols, 3d game 등 3D 라이브러리를 사용한 3D 포트폴리오
 
 * three.js 게임 정리 
-** https://enchanting-agate-373.notion.site/Three-js-game-4393699ce45c45878f3566cee3fd6afb
+ https://enchanting-agate-373.notion.site/Three-js-game-4393699ce45c45878f3566cee3fd6afb
 
 demo : https://hxxgxx.github.io/3d-portfolio/
 
